@@ -34,8 +34,9 @@ end
 kb = {}
 kb.__index = kb
 
-function kb:new()
+function kb:new(name)
 	local t = setmetatable({}, kb)
+	t.name = name
 	for r=1,3 do
 		for _, hand in ipairs{'left', 'right'} do
 			local row = kb_layout[hand][r]

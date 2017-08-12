@@ -25,10 +25,22 @@ function sk_effort:effort(pos)
 	return self[pos[1]][pos[2]][pos[3]]
 end
 
+local function clamp(val, min, max)
+	if val < min then
+		return min
+	elseif val > max then
+		return max
+	else
+		return val
+	end
+end
+
 function sk_effort:finger(pos)
 	local row = self[pos[1]][pos[2]]
-	local finger = pos[3] + row.base
+	local finger = clamp(pos[3] + row.base, 1, 4)
 
+	-- Fingers are kept in the same order to allow for 
+	-- checking inwards rolling rather than direction
 	if pos[1] == 'right' then
 		finger = finger + 4
 	end

@@ -7,31 +7,83 @@ local test_file = io.open("holmes.txt", "r")
 local test_str = test_file:read("*all")
 test_file:close()
 
-local kb = kb:new():layout("qwert" .. "[poiuy" .. "asdfg" ..  "';lkjh" .. "\\zxcvb" .. "/.,mn")
-local kb2 = kb:new():layout("vyd,;" .. "]/ulmj" .. "atheb" ..  "=ioncs'" .. "\\pkgwq" .. "z.frx")
-local kb3 = kb:new():layout("',.py" .. "/lrcgf" .. "aoeui" ..  "-snthd" .. "\\;qjkx" .. "zvwmb")
-local kb4 = kb:new():layout("qwldb" .. "[kyupj" .. "asrtg" ..  "'oienf" .. ";zxcv\\" .. ".,mh/")
+local kb   = {
+	kb:new('qwerty')  :layout("qwert" .. "[poiuy" .. "asdfg" ..  "';lkjh" .. "\\zxcvb" .. "/.,mn"),
+	kb:new('whittish'):layout("vyd,;" .. "]/ulmj" .. "atheb" ..  "'ioncs" .. "\\pkgwq" .. "z.frx"),
+	kb:new('dvorak')  :layout("',.py" .. "/lrcgf" .. "aoeui" ..  "[snthd" .. "\\;qjkx" .. "zvwmb"),
+	kb:new('solemak') :layout("qwldb" .. "[kyupj" .. "asrtg" ..  "'oienf" .. ";zxcv\\" .. ".,mh/"),
+}
 
-print(kb['y'][1])
-print(kb['y'][2])
-print(kb['y'][3])
+local function eval_kb(kb, pr)
+	-- Long running stats
+	-- Finger use recording
+	local fingers  = {0,0,0,0,0,0,0,0,}
 
-local function eval_kb(kb)
-	local cost = 0
-	-- Single hand record - record of use of single hand
-	local shr = {}
+	-- Short running stats
+	local c_hand
+	-- Single key costs
+	local sk_cost = 0
+	-- Same finger cost
+	local sf_cost = 0
+	local run_fingers = {} -- Table of fingers and the position they were last in
+
+	-- Run information
+	local run_cost = 0
+	local run_hand
+	local run_keys = {}
 	for c in test_str:gmatch"." do
 		if kb[c] then
 			local pos = kb[c]
-			-- Single key effort cost
-			effort = skb:effort(pos)
-			cost = cost + effort
+			-- Single key effort cost - penalises difficult to reach keys
+			local effort = skb:effort(pos)
+			sk_cost = sk_cost + effort
+
+			-- Finger use tracking
+			local finger = skb:finger(pos)
+			fingers[finger] = fingers[finger] + 1
+
+			if pos[1] == run_hand then
+				-- Same finger use cost - penalises use of the same finger in a run
+				if run_fingers[finger] then
+					-- Cost is based on how far the finger has to
+					-- move from its previous pos
+					local old_pos = run_fingers[finger]
+					local effort = math.abs(pos[2] - old_pos[2]) + math.abs(pos[3] - old_pos[3])
+					sf_cost = sf_cost + effort
+				end
+				run_fingers[finger] = pos
+			else
+				-- Run length cost - penalises same hand runs which are too long
+				if #run_keys ~= 0 then
+					local 
+
+				-- Reset run values
+				run_hand = pos[1]
+				run_keys = {}
+				run_fingers = {}
+			end
+		elseif c == ' ' then
+			run_hand = nil
 		end
+	end
+
+	local cost = sk_cost + sf_cost
+	if pr then
+		print(kb.name .. "; " .. tostring(cost))
+		io.write("finger use; ")
+		io.write("left; ")
+		for i=1,4 do
+			io.write(" " .. tostring(fingers[i]) .. ", ")
+		end
+		io.write("right; ")
+		for i=8,5,-1 do
+			io.write(" " .. tostring(fingers[i]) .. ", ")
+		end
+		print("")
 	end
 	return cost
 end
 
-print("qwerty; " .. tostring(eval_kb(kb)))
-print("whittish; " .. tostring(eval_kb(kb2)))
-print("dvorak; " .. tostring(eval_kb(kb3)))
-print("solemak; " .. tostring(eval_kb(kb4)))
+for _, kb in ipairs(kb) do
+	eval_kb(kb, true)
+end
