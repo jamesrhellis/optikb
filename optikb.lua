@@ -38,8 +38,9 @@ local function eval_kb(kb, pr)
 	local run_length = 0
 	-- Roll effort reduction
 	local re_reduc = 0
+	local dr_cost = 0
 	local last_pos
-	local run_dir
+	local old_run_dir
 	for c in test_str:gmatch"." do
 		if kb[c] then
 			local pos = kb[c]
@@ -63,6 +64,10 @@ local function eval_kb(kb, pr)
 				run_hand = pos[1]
 				run_length = 0
 				run_fingers = {}
+				-- Reset roll values
+				last_finger = nil
+				last_pos = nil
+				last_run_dir = nil
 			end
 			run_length = run_length + 1
 
@@ -76,7 +81,7 @@ local function eval_kb(kb, pr)
 			end
 
 			-- Roll effort reduction
-			if run_length > 1  and skb:finger(last_pos) ~= finger then
+			if run_length > 1  and last_finger ~= finger then
 				-- A roll is a transition from any key with effort 1-3 to another on the same hand (different finger)
 				-- The direction is also factored in with a small penalty for rolling in the wrong direction
 				-- a change in roll direction also enouters a penalty
@@ -84,15 +89,35 @@ local function eval_kb(kb, pr)
 				-- Base flow reduction
 				local flow = 5 - (skb:effort(last_pos) + effort)
 				re_reduc = re_reduc + flow
+
+				-- Directional penalties
+				local run_dir
+				if finger > last_finger then
+					run_dir = 'in'
+				else
+					run_dir = 'out'
+				end
+
+				-- Increase effort if there is a switch in roll direction
+				if last_run_dir and run_dir ~= last_run_dir then
+					dr_cost = dr_cost + 3
+				end
+
+				if run_dir == 'in' then
+					-- Reduce effort on an inward roll
+					dr_cost = dr_cost - 1
+				end
+				last_run_dir = run_dir
 			end
 			run_fingers[finger] = pos
 			last_pos = pos
+			last_finger = finger
 		elseif c == ' ' then
 			run_hand = nil
 		end
 	end
 
-	local cost = sk_cost + sf_cost + rl_cost - re_reduc
+	local cost = sk_cost + sf_cost + rl_cost + dr_cost - re_reduc
 	if pr then
 		print("******************************")
 		print(kb.name .. "; " .. tostring(cost))
@@ -100,6 +125,7 @@ local function eval_kb(kb, pr)
 		print("Same finger cost; " .. tostring(sf_cost))
 		print("Run length cost; " .. tostring(rl_cost))
 		print("Roll effort reduction; " .. tostring(re_reduc))
+		print("Directional cost; " .. tostring(dr_cost))
 		io.write("finger use; ")
 		io.write("left; ")
 		for i=1,4 do
