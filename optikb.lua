@@ -29,8 +29,10 @@ local function eval_kb(kb, pr)
 
 	-- Run information
 	local run_cost = 0
+	-- Run length cost
+	local rl_cost = 0
 	local run_hand
-	local run_keys = {}
+	local run_length = 0
 	for c in test_str:gmatch"." do
 		if kb[c] then
 			local pos = kb[c]
@@ -42,32 +44,36 @@ local function eval_kb(kb, pr)
 			local finger = skb:finger(pos)
 			fingers[finger] = fingers[finger] + 1
 
-			if pos[1] == run_hand then
-				-- Same finger use cost - penalises use of the same finger in a run
-				if run_fingers[finger] then
-					-- Cost is based on how far the finger has to
-					-- move from its previous pos
-					local old_pos = run_fingers[finger]
-					local effort = math.abs(pos[2] - old_pos[2]) + math.abs(pos[3] - old_pos[3])
-					sf_cost = sf_cost + effort
-				end
-				run_fingers[finger] = pos
-			else
+			-- Reset run values if changing hand
+			if pos[1] ~= run_hand then
 				-- Run length cost - penalises same hand runs which are too long
-				if #run_keys ~= 0 then
-					local 
+				if run_length ~= 0 then
+					local effort = (run_length > 2) and (run_length - 2) or 0
+					rl_cost = rl_cost + effort
+				end
 
 				-- Reset run values
 				run_hand = pos[1]
-				run_keys = {}
+				run_length = 0
 				run_fingers = {}
 			end
+			run_length = run_length + 1
+
+			-- Same finger use cost - penalises use of the same finger in a run
+			if run_fingers[finger] then
+				-- Cost is based on how far the finger has to
+				-- move from its previous pos
+				local old_pos = run_fingers[finger]
+				local effort = math.abs(pos[2] - old_pos[2]) + math.abs(pos[3] - old_pos[3])
+				sf_cost = sf_cost + effort
+			end
+			run_fingers[finger] = pos
 		elseif c == ' ' then
 			run_hand = nil
 		end
 	end
 
-	local cost = sk_cost + sf_cost
+	local cost = sk_cost + sf_cost + rl_cost
 	if pr then
 		print(kb.name .. "; " .. tostring(cost))
 		io.write("finger use; ")
