@@ -36,6 +36,10 @@ local function eval_kb(kb, pr)
 	local rl_cost = 0
 	local run_hand
 	local run_length = 0
+	-- Roll effort reduction
+	local re_reduc = 0
+	local last_pos
+	local run_dir
 	for c in test_str:gmatch"." do
 		if kb[c] then
 			local pos = kb[c]
@@ -70,15 +74,32 @@ local function eval_kb(kb, pr)
 				local effort = math.abs(pos[2] - old_pos[2]) + math.abs(pos[3] - old_pos[3])
 				sf_cost = sf_cost + effort
 			end
+
+			-- Roll effort reduction
+			if run_length > 1  and skb:finger(last_pos) ~= finger then
+				-- A roll is a transition from any key with effort 1-3 to another on the same hand (different finger)
+				-- The direction is also factored in with a small penalty for rolling in the wrong direction
+				-- a change in roll direction also enouters a penalty
+
+				-- Base flow reduction
+				local flow = 5 - (skb:effort(last_pos) + effort)
+				re_reduc = re_reduc + flow
+			end
 			run_fingers[finger] = pos
+			last_pos = pos
 		elseif c == ' ' then
 			run_hand = nil
 		end
 	end
 
-	local cost = sk_cost + sf_cost + rl_cost
+	local cost = sk_cost + sf_cost + rl_cost - re_reduc
 	if pr then
+		print("******************************")
 		print(kb.name .. "; " .. tostring(cost))
+		print("Single key efforts cost; " .. tostring(sk_cost))
+		print("Same finger cost; " .. tostring(sf_cost))
+		print("Run length cost; " .. tostring(rl_cost))
+		print("Roll effort reduction; " .. tostring(re_reduc))
 		io.write("finger use; ")
 		io.write("left; ")
 		for i=1,4 do
