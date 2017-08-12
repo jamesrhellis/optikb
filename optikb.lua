@@ -1,6 +1,9 @@
 dofile("kb.lua")
 local skb = dofile("single_key.lua")
+print("KB: " .. kb_layout.name)
+print("Left Hand:")
 skb.left:print()
+print("Right Hand:")
 skb.right:print()
 
 local test_file = io.open("holmes.txt", "r")

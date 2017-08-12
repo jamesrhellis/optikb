@@ -69,6 +69,7 @@ end
 -- middle keys (qwerty yh) are ignored as they are too sub-optimal
 -- and are equidistant to both hands
 iso105_right = {
+	name = "Iso 105 (rightshifted)",
 	left = {
 		-- Number row { base = -2, length = 7},
 		-- Letter rows
