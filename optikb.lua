@@ -77,7 +77,8 @@ local function eval_kb(kb, pr)
 				-- move from its previous pos
 				local old_pos = run_fingers[finger]
 				local effort = math.abs(pos[2] - old_pos[2]) + math.abs(pos[3] - old_pos[3])
-				sf_cost = sf_cost + effort
+				-- Effort is doubled to counter the lack of flow penalisation
+				sf_cost = sf_cost + (effort * 2)
 			end
 
 			-- Roll effort reduction
@@ -120,7 +121,7 @@ local function eval_kb(kb, pr)
 	local cost = sk_cost + sf_cost + rl_cost + dr_cost - re_reduc
 	if pr then
 		print("******************************")
-		print(kb.name .. "; " .. tostring(cost))
+		print(kb.name .. ";    \t" .. tostring(cost))
 		print("Single key efforts cost; " .. tostring(sk_cost))
 		print("Same finger cost; " .. tostring(sf_cost))
 		print("Run length cost; " .. tostring(rl_cost))
