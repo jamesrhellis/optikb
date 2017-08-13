@@ -7,7 +7,7 @@ print("Right Hand:")
 skb.right:print()
 
 local test_file = io.open("holmes.txt", "r")
-local test_str = test_file:read("*all")
+local test_str = test_file:read("*all"):lower()
 test_file:close()
 
 local kb   = {

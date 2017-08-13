@@ -61,6 +61,15 @@ function kb:swap_keys(a, b)
 	self[b] = temp
 end
 
+-- Shallow clone as all contained structures are constant
+function kb:clone()
+	local new = {}
+	for k, v in pairs(self) do
+		new[k] = self[v]
+	end
+	return new
+end
+
 -- Predefined layouts used for calculating costs
 -- Number rows are not included in analysis as 
 -- most symbols are not common, so should be optimised by hand
