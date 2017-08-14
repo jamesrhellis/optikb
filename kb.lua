@@ -6,6 +6,7 @@ hand.__index = hand
 function hand:add_row(base, values)
 	values.base = base
 	self[#self + 1] = values
+	return self
 end
 
 function hand:print()
@@ -49,13 +50,14 @@ function kb:new(name)
 end
 
 function kb:layout(str)
+	self.str = str
 	for c in str:gmatch"." do
 		self[c] = table.remove(self, 1)
 	end
 	return self
 end
 
-function kb:swap_keys(a, b)
+function kb:swap(a, b)
 	local temp = self[a]
 	self[a] = self[b]
 	self[b] = temp
@@ -63,9 +65,9 @@ end
 
 -- Shallow clone as all contained structures are constant
 function kb:clone()
-	local new = {}
+	local new = setmetatable({}, kb)
 	for k, v in pairs(self) do
-		new[k] = self[v]
+		new[k] = self[k]
 	end
 	return new
 end

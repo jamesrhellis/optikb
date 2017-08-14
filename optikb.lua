@@ -17,6 +17,28 @@ local kb   = {
 	kb:new('solemak') :layout("qwldb" .. "[kyupj" .. "asrtg" ..  "'oienf" .. ";zxcv\\" .. ".,mh/"),
 }
 
+local function print_kb(kb)
+	local pkb = {
+		left = {{},{},{}},
+		right = {{},{},{}},
+	}
+	for key, pos in pairs(kb) do
+		if type(pos) == 'table' then
+			pkb[pos[1]][pos[2]][pos[3]] = key
+		end
+	end
+	for _, l in ipairs{'left', 'right'} do
+		pkb[l] = hand:new():add_row(kb_layout[l][1].base, pkb[l][1]):add_row(kb_layout[l][2].base, pkb[l][2]):add_row(kb_layout[l][3].base, pkb[l][3])
+	end
+	if kb.name then
+		print("KB: " .. kb.name)
+	end
+	print("Left Hand:")
+	pkb.left:print()
+	print("Right Hand:")
+	pkb.right:print()
+end
+
 local function eval_kb(kb, pr)
 	-- Long running stats
 	-- Finger use recording
@@ -141,6 +163,67 @@ local function eval_kb(kb, pr)
 	return cost
 end
 
+--[[
 for _, kb in ipairs(kb) do
 	eval_kb(kb, true)
+end
+--]]
+
+-- Start with solemak as a base
+local best_kb = kb[4]:clone()
+local best_cost = eval_kb(best_kb)
+
+local temp_factor = 0.99885
+local start_temp = best_cost
+
+print_kb(best_kb)
+
+-- Items which can be swapped
+local swappable = {}
+for c in best_kb.str:gmatch"." do
+	swappable[#swappable + 1] = c
+end
+
+-- Outer loop determines the number of iterations
+for iter=1,10 do
+	local iter_kb = best_kb:clone()
+	local iter_cost = best_cost
+
+	local iter_temp = start_temp
+	for i=1,10000 do
+		io.write(tostring(i) .. " of iter; " .. tostring(iter) .. " with temp; " ..  tostring(iter_temp))
+		io.flush()
+		local swap = swappable[math.random(1, #swappable)]
+		local with = swappable[math.random(2, #swappable)]
+		if with == swap then
+			with = swappable[1]
+		end
+
+		iter_kb:swap(swap, with)
+		local cost = eval_kb(iter_kb)
+
+		if cost > iter_cost then
+			local diff = cost - iter_cost
+			if math.random() > math.exp(-diff / iter_temp) then
+				iter_kb:swap(swap, with)
+				cost = iter_cost
+			end
+		end
+		iter_cost = cost
+
+		if iter_cost < best_cost then
+			best_kb = iter_kb:clone()
+			best_cost = iter_cost
+
+			-- Print new best kb out
+			eval_kb(best_kb, true)
+			print_kb(best_kb)
+			print("")
+		end
+
+		iter_temp = iter_temp * temp_factor
+		io.write("\r")
+	end
+	eval_kb(best_kb, true)
+	print_kb(best_kb)
 end
