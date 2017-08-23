@@ -28,7 +28,6 @@ local function stat(str)
 	return {bigrams = bigrams, trigrams = trigrams}
 end
 		
-
 local kb   = {
 	kb:new('qwerty')  :layout("qwert" .. "[poiuy" .. "asdfg" ..  "';lkjh" .. "\\zxcvb" .. "/.,mn"),
 	kb:new('whittish'):layout("vyd,;" .. "]/ulmj" .. "atheb" ..  "'ioncs" .. "\\pkgwq" .. "z.frx"),
@@ -197,12 +196,6 @@ local start_temp = best_cost
 
 print_kb(best_kb)
 
--- Items which can be swapped
-local swappable = {}
-for c in best_kb.str:gmatch"." do
-	swappable[#swappable + 1] = c
-end
-
 -- Outer loop determines the number of iterations
 for iter=1,10 do
 	local iter_kb = best_kb:clone()
@@ -212,13 +205,7 @@ for iter=1,10 do
 	for i=1,10000 do
 		io.write(tostring(i) .. " of iter; " .. tostring(iter) .. " with temp; " ..  tostring(iter_temp))
 		io.flush()
-		local swap = swappable[math.random(1, #swappable)]
-		local with = swappable[math.random(2, #swappable)]
-		if with == swap then
-			with = swappable[1]
-		end
-
-		iter_kb:swap(swap, with)
+		iter_kb:rswap()
 		local cost = eval_kb(iter_kb)
 
 		if cost > iter_cost then

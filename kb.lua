@@ -50,10 +50,27 @@ function kb:new(name)
 end
 
 function kb:layout(str)
-	self.str = str
+	-- Items which can be swapped
+	local swappable = {}
+	for c in best_kb.str:gmatch"." do
+		swappable[#swappable + 1] = c
+	end
+	self.swappble = swappble
+
 	for c in str:gmatch"." do
 		self[c] = table.remove(self, 1)
 	end
+	return self
+end
+
+function kb:rswap()
+	local swap = self.swappable[math.random(1, #swappable)]
+	local with = self.swappable[math.random(2, #swappable)]
+	if with == swap then
+		with = self.swappable[1]
+	end
+
+	self:swap(swap, with)
 	return self
 end
 
