@@ -10,6 +10,25 @@ local test_file = io.open("holmes.txt", "r")
 local test_str = test_file:read("*all"):lower()
 test_file:close()
 
+local function stat(str)
+	local bigrams = {}
+	local trigrams = {}
+	for i=1,str:len() do
+		local bi = str:sub(i, i + 2)
+		local tri = str:sub(i, i + 3)
+		if bi:len() == 2 then
+			bigrams[bi] = (bigrams[bi] or 0) + 1
+		end
+		if tri:len() == 3 then
+			trigrams[tri] = (trigrams[tri] or 0) + 1
+		end
+	end
+	bigrams.total = str:len() - 2
+	trigrams.total = str:len() - 3
+	return {bigrams = bigrams, trigrams = trigrams}
+end
+		
+
 local kb   = {
 	kb:new('qwerty')  :layout("qwert" .. "[poiuy" .. "asdfg" ..  "';lkjh" .. "\\zxcvb" .. "/.,mn"),
 	kb:new('whittish'):layout("vyd,;" .. "]/ulmj" .. "atheb" ..  "'ioncs" .. "\\pkgwq" .. "z.frx"),
