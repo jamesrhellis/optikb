@@ -52,7 +52,7 @@ end
 function kb:layout(str)
 	-- Items which can be swapped
 	local swappable = {}
-	for c in best_kb.str:gmatch"." do
+	for c in str:gmatch"." do
 		swappable[#swappable + 1] = c
 	end
 	self.swappble = swappble

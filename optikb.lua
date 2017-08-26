@@ -6,27 +6,36 @@ skb.left:print()
 print("Right Hand:")
 skb.right:print()
 
-local test_file = io.open("holmes.txt", "r")
-local test_str = test_file:read("*all"):lower()
-test_file:close()
-
 local function stat(str)
+	local single = {}
 	local bigrams = {}
 	local trigrams = {}
 	for i=1,str:len() do
-		local bi = str:sub(i, i + 2)
-		local tri = str:sub(i, i + 3)
+		local si = str:sub(i, i)
+		single[si] = (single[si] or 0) + 1
+
+		local bi = str:sub(i, i + 1)
 		if bi:len() == 2 then
 			bigrams[bi] = (bigrams[bi] or 0) + 1
 		end
+		--[[
+		local tri = str:sub(i, i + 3)
 		if tri:len() == 3 then
 			trigrams[tri] = (trigrams[tri] or 0) + 1
 		end
+		--]]
 	end
+	--[[
+	single.total = str:len() - 1
 	bigrams.total = str:len() - 2
 	trigrams.total = str:len() - 3
-	return {bigrams = bigrams, trigrams = trigrams}
+	--]]
+	return {single = single, bigrams = bigrams--[[, trigrams = trigrams]]}
 end
+
+local test_file = io.open("holmes.txt", "r")
+local stats = stat(test_file:read("*all"):lower())
+test_file:close()
 		
 local kb   = {
 	kb:new('qwerty')  :layout("qwert" .. "[poiuy" .. "asdfg" ..  "';lkjh" .. "\\zxcvb" .. "/.,mn"),
@@ -57,116 +66,62 @@ local function print_kb(kb)
 	pkb.right:print()
 end
 
-local function eval_kb(kb, pr)
-	-- Long running stats
-	-- Finger use recording
-	local fingers  = {0,0,0,0,0,0,0,0,}
-
-	-- Short running stats
-	local c_hand
-	-- Single key costs
+local function evalkb(kb, stats, prt)
 	local sk_cost = 0
-	-- Same finger cost
-	local sf_cost = 0
-	local run_fingers = {} -- Table of fingers and the position they were last in
-
-	-- Run information
-	local run_cost = 0
-	-- Run length cost
-	local rl_cost = 0
-	local run_hand
-	local run_length = 0
-	-- Roll effort reduction
-	local re_reduc = 0
-	local dr_cost = 0
-	local last_pos
-	local old_run_dir
-	for c in test_str:gmatch"." do
-		if kb[c] then
-			local pos = kb[c]
-			-- Single key effort cost - penalises difficult to reach keys
-			local effort = skb:effort(pos)
-			sk_cost = sk_cost + effort
+	local fingers = {0,0,0,0,0,0,0,0}
+	-- Single key cost costs
+	for char, v in pairs(stats.single) do
+		local pos = kb[char]
+		if pos then
+			local cost = skb:effort(pos) * v
+			sk_cost = sk_cost + cost
 
 			-- Finger use tracking
 			local finger = skb:finger(pos)
-			fingers[finger] = fingers[finger] + 1
-
-			-- Reset run values if changing hand
-			if pos[1] ~= run_hand then
-				-- Run length cost - penalises same hand runs which are too long
-				if run_length ~= 0 then
-					local effort = (run_length > 2) and (run_length - 2) or 0
-					rl_cost = rl_cost + effort
-				end
-
-				-- Reset run values
-				run_hand = pos[1]
-				run_length = 0
-				run_fingers = {}
-				-- Reset roll values
-				last_finger = nil
-				last_pos = nil
-				last_run_dir = nil
-			end
-			run_length = run_length + 1
-
-			-- Same finger use cost - penalises use of the same finger in a run
-			if run_fingers[finger] then
-				-- Cost is based on how far the finger has to
-				-- move from its previous pos
-				local old_pos = run_fingers[finger]
-				local effort = math.abs(pos[2] - old_pos[2]) + math.abs(pos[3] - old_pos[3])
-				-- Effort is doubled to counter the lack of flow penalisation
-				sf_cost = sf_cost + (effort * 2)
-			end
-
-			-- Roll effort reduction
-			if run_length > 1  and last_finger ~= finger then
-				-- A roll is a transition from any key with effort 1-3 to another on the same hand (different finger)
-				-- The direction is also factored in with a small penalty for rolling in the wrong direction
-				-- a change in roll direction also enouters a penalty
-
-				-- Base flow reduction
-				local flow = 5 - (skb:effort(last_pos) + effort)
-				re_reduc = re_reduc + flow
-
-				-- Directional penalties
-				local run_dir
-				if finger > last_finger then
-					run_dir = 'in'
-				else
-					run_dir = 'out'
-				end
-
-				-- Increase effort if there is a switch in roll direction
-				if last_run_dir and run_dir ~= last_run_dir then
-					dr_cost = dr_cost + 3
-				end
-
-				if run_dir == 'in' then
-					-- Reduce effort on an inward roll
-					dr_cost = dr_cost - 1
-				end
-				last_run_dir = run_dir
-			end
-			run_fingers[finger] = pos
-			last_pos = pos
-			last_finger = finger
-		elseif c == ' ' then
-			run_hand = nil
+			fingers[finger] = fingers[finger] + v
 		end
 	end
+	local sf_cost = 0
+	local fl_red = 0
+	-- Bigram cost
+	for bi, v in pairs(stats.bigrams) do
+		local first = kb[bi:sub(1,1)]
+		local sec = kb[bi:sub(2,2)]
 
-	local cost = sk_cost + sf_cost + rl_cost + dr_cost - re_reduc
-	if pr then
+		if first and sec then
+			-- Same finger use cost
+			if skb:finger(first) == skb:finger(sec) then
+				-- Cost is based on distance moved
+				-- Vertical distance squared + 1
+				-- Or flat cost of 2 if horizontal (can never move more than 1)
+				if first[2] ~= sec[2] then
+					sf_cost = sf_cost + (math.pow(math.abs(first[2] - sec[2]), 2) + 1) * v
+				else
+					sf_cost = sf_cost + 2 * v
+				end
+			else
+				local ef = skb:effort(first)
+				local es = skb:effort(sec)
+
+				-- Flow cost reduction - reduce cost between
+				-- easy keys and increase between hard keys
+				fl_red = fl_red + (5-(ef+es)) * v
+
+				-- Inward flow bias
+				if skb:finger(first) < skb:finger(sec) then
+					fl_red = fl_red + v
+				end
+			end
+		end
+	end
+	local cost = sk_cost + sf_cost - fl_red
+
+	if prt then
 		print("******************************")
 		print(kb.name .. ";    \t" .. tostring(cost))
 		print("Single key efforts cost; " .. tostring(sk_cost))
 		print("Same finger cost; " .. tostring(sf_cost))
-		print("Run length cost; " .. tostring(rl_cost))
-		print("Roll effort reduction; " .. tostring(re_reduc))
-		print("Directional cost; " .. tostring(dr_cost))
+		print("Flow cost reduction; " .. tostring(fl_red))
 		io.write("finger use; ")
 		io.write("left; ")
 		for i=1,4 do
@@ -181,15 +136,16 @@ local function eval_kb(kb, pr)
 	return cost
 end
 
---[[
+--
 for _, kb in ipairs(kb) do
-	eval_kb(kb, true)
+	evalkb(kb, stats, true)
 end
 --]]
 
--- Start with solemak as a base
 local best_kb = kb[4]:clone()
-local best_cost = eval_kb(best_kb)
+--[[
+-- Start with solemak as a base
+local best_cost = evalkb(best_kb, stats)
 
 local temp_factor = 0.99885
 local start_temp = best_cost
@@ -206,7 +162,7 @@ for iter=1,10 do
 		io.write(tostring(i) .. " of iter; " .. tostring(iter) .. " with temp; " ..  tostring(iter_temp))
 		io.flush()
 		iter_kb:rswap()
-		local cost = eval_kb(iter_kb)
+		local cost = evalkb(iter_kb, stats)
 
 		if cost > iter_cost then
 			local diff = cost - iter_cost
@@ -222,7 +178,7 @@ for iter=1,10 do
 			best_cost = iter_cost
 
 			-- Print new best kb out
-			eval_kb(best_kb, true)
+			evalkb(best_kb, stats, true)
 			print_kb(best_kb)
 			print("")
 		end
@@ -230,6 +186,7 @@ for iter=1,10 do
 		iter_temp = iter_temp * temp_factor
 		io.write("\r")
 	end
-	eval_kb(best_kb, true)
+	evalkb(best_kb, stats, true)
 	print_kb(best_kb)
 end
+--]]
