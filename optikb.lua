@@ -90,7 +90,9 @@ local function evalkb(kb, stats, prt)
 
 		if first and sec then
 			-- Same finger use cost
-			if skb:finger(first) == skb:finger(sec) then
+			local ff = skb:finger(first)
+			local fs = skb:finger(sec)
+			if ff == fs then
 				-- Cost is based on distance moved
 				-- Vertical distance squared + 1
 				-- Or flat cost of 2 if horizontal (can never move more than 1)
@@ -99,7 +101,7 @@ local function evalkb(kb, stats, prt)
 				else
 					sf_cost = sf_cost + 2 * v
 				end
-			else
+			elseif (ff < 4 and fs < 4) or (ff >= 4 and fs >= 4) then
 				local ef = skb:effort(first)
 				local es = skb:effort(sec)
 
@@ -108,7 +110,7 @@ local function evalkb(kb, stats, prt)
 				fl_red = fl_red + (5-(ef+es)) * v
 
 				-- Inward flow bias
-				if skb:finger(first) < skb:finger(sec) then
+				if ff < fs then
 					fl_red = fl_red + v
 				end
 			end
@@ -158,8 +160,9 @@ for iter=1,10 do
 	local iter_cost = best_cost
 
 	local iter_temp = start_temp
+	io.write("Iter; " .. tostring(iter))
 	for i=1,10000 do
-		io.write(tostring(i) .. " of iter; " .. tostring(iter) .. " with temp; " ..  tostring(iter_temp))
+		--io.write(tostring(i) .. " of iter; " .. tostring(iter) .. " with temp; " ..  tostring(iter_temp))
 		io.flush()
 		local swap, with = iter_kb:rswap()
 		local cost = evalkb(iter_kb, stats)
