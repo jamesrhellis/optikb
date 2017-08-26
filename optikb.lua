@@ -6,6 +6,8 @@ skb.left:print()
 print("Right Hand:")
 skb.right:print()
 
+math.randomseed(os.time())
+
 local function stat(str)
 	local single = {}
 	local bigrams = {}
@@ -101,6 +103,7 @@ local function evalkb(kb, stats, prt)
 				else
 					sf_cost = sf_cost + 2 * v
 				end
+			-- Check that the fingers are on the same hand
 			elseif (ff < 4 and fs < 4) or (ff >= 4 and fs >= 4) then
 				local ef = skb:effort(first)
 				local es = skb:effort(sec)
@@ -160,9 +163,8 @@ for iter=1,10 do
 	local iter_cost = best_cost
 
 	local iter_temp = start_temp
-	io.write("Iter; " .. tostring(iter))
 	for i=1,10000 do
-		--io.write(tostring(i) .. " of iter; " .. tostring(iter) .. " with temp; " ..  tostring(iter_temp))
+		io.write(tostring(i) .. " of iter; " .. tostring(iter) .. " with temp; " ..  tostring(iter_temp))
 		io.flush()
 		local swap, with = iter_kb:rswap()
 		local cost = evalkb(iter_kb, stats)
