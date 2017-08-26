@@ -112,10 +112,12 @@ local function evalkb(kb, stats, prt)
 				-- easy keys and increase between hard keys
 				fl_red = fl_red + (5-(ef+es)) * v
 
+				--[[
 				-- Inward flow bias
 				if ff < fs then
 					fl_red = fl_red + v
 				end
+				--]]
 			end
 		end
 	end
