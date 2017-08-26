@@ -55,7 +55,7 @@ function kb:layout(str)
 	for c in str:gmatch"." do
 		swappable[#swappable + 1] = c
 	end
-	self.swappble = swappble
+	self.swappable = swappable
 
 	for c in str:gmatch"." do
 		self[c] = table.remove(self, 1)
@@ -64,14 +64,14 @@ function kb:layout(str)
 end
 
 function kb:rswap()
-	local swap = self.swappable[math.random(1, #swappable)]
-	local with = self.swappable[math.random(2, #swappable)]
+	local swap = self.swappable[math.random(1, #self.swappable)]
+	local with = self.swappable[math.random(2, #self.swappable)]
 	if with == swap then
 		with = self.swappable[1]
 	end
 
 	self:swap(swap, with)
-	return self
+	return swap, with
 end
 
 function kb:swap(a, b)

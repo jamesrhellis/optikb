@@ -21,7 +21,7 @@ local function stat(str)
 		--[[
 		local tri = str:sub(i, i + 3)
 		if tri:len() == 3 then
-			trigrams[tri] = (trigrams[tri] or 0) + 1
+		trigrams[tri] = (trigrams[tri] or 0) + 1
 		end
 		--]]
 	end
@@ -36,7 +36,7 @@ end
 local test_file = io.open("holmes.txt", "r")
 local stats = stat(test_file:read("*all"):lower())
 test_file:close()
-		
+
 local kb   = {
 	kb:new('qwerty')  :layout("qwert" .. "[poiuy" .. "asdfg" ..  "';lkjh" .. "\\zxcvb" .. "/.,mn"),
 	kb:new('whittish'):layout("vyd,;" .. "]/ulmj" .. "atheb" ..  "'ioncs" .. "\\pkgwq" .. "z.frx"),
@@ -50,7 +50,7 @@ local function print_kb(kb)
 		right = {{},{},{}},
 	}
 	for key, pos in pairs(kb) do
-		if type(pos) == 'table' then
+		if type(pos) == 'table' and key ~= 'swappable' then
 			pkb[pos[1]][pos[2]][pos[3]] = key
 		end
 	end
@@ -136,14 +136,14 @@ local function evalkb(kb, stats, prt)
 	return cost
 end
 
---
+--[[
 for _, kb in ipairs(kb) do
 	evalkb(kb, stats, true)
 end
 --]]
 
 local best_kb = kb[4]:clone()
---[[
+--
 -- Start with solemak as a base
 local best_cost = evalkb(best_kb, stats)
 
@@ -161,7 +161,7 @@ for iter=1,10 do
 	for i=1,10000 do
 		io.write(tostring(i) .. " of iter; " .. tostring(iter) .. " with temp; " ..  tostring(iter_temp))
 		io.flush()
-		iter_kb:rswap()
+		local swap, with = iter_kb:rswap()
 		local cost = evalkb(iter_kb, stats)
 
 		if cost > iter_cost then
