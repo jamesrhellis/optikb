@@ -75,12 +75,12 @@ local function evalkb(kb, stats, prt)
 	for char, v in pairs(stats.single) do
 		local pos = kb[char]
 		if pos then
-			local cost = skb:effort(pos) * v
+			local cost = skb:effort(pos) * math.log(v)
 			sk_cost = sk_cost + cost
 
 			-- Finger use tracking
 			local finger = skb:finger(pos)
-			fingers[finger] = fingers[finger] + v
+			fingers[finger] = fingers[finger] + math.log(v)
 		end
 	end
 	local sf_cost = 0
@@ -99,9 +99,9 @@ local function evalkb(kb, stats, prt)
 				-- Vertical distance squared + 1
 				-- Or flat cost of 2 if horizontal (can never move more than 1)
 				if first[2] ~= sec[2] then
-					sf_cost = sf_cost + (math.pow(math.abs(first[2] - sec[2]), 2) + 1) * v
+					sf_cost = sf_cost + (math.pow(math.abs(first[2] - sec[2]), 2) + 1) * math.log(v)
 				else
-					sf_cost = sf_cost + 2 * v
+					sf_cost = sf_cost + 2 * math.log(v)
 				end
 			-- Check that the fingers are on the same hand
 			elseif (ff < 4 and fs < 4) or (ff >= 4 and fs >= 4) then
@@ -110,7 +110,7 @@ local function evalkb(kb, stats, prt)
 
 				-- Flow cost reduction - reduce cost between
 				-- easy keys and increase between hard keys
-				fl_red = fl_red + (5-(ef+es)) * v
+				fl_red = fl_red + (5-(ef+es)) * math.log(v)
 
 				--[[
 				-- Inward flow bias
