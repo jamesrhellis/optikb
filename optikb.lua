@@ -43,7 +43,7 @@ local kb   = {
 	kb:new('qwerty')  :layout("qwert" .. "[poiuy" .. "asdfg" ..  "';lkjh" .. "\\zxcvb" .. "/.,mn"),
 	kb:new('whittish'):layout("vyd,;" .. "]/ulmj" .. "atheb" ..  "'ioncs" .. "\\pkgwq" .. "z.frx"),
 	kb:new('dvorak')  :layout("',.py" .. "/lrcgf" .. "aoeui" ..  "[snthd" .. "\\;qjkx" .. "zvwmb"),
-	kb:new('solemak') :layout("qwldb" .. "[kyupj" .. "asrtg" ..  "'oienf" .. ";zxcv\\" .. ".,mh/"),
+	kb:new('solemak') :layout("qwldb" .. "^kyupj" .. "asrtg" ..  "%oienf" .. "$zxcv@" .. ".,mh/"),
 }
 
 local function print_kb(kb)
@@ -193,7 +193,5 @@ for iter=1,10 do
 		iter_temp = iter_temp * temp_factor
 		io.write("\r")
 	end
-	evalkb(best_kb, stats, true)
-	print_kb(best_kb)
 end
 --]]
