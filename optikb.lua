@@ -43,7 +43,7 @@ local kb   = {
 	kb:new('qwerty')  :layout("qwert" .. "[poiuy" .. "asdfg" ..  "';lkjh" .. "\\zxcvb" .. "/.,mn"),
 	kb:new('whittish'):layout("vyd,;" .. "]/ulmj" .. "atheb" ..  "'ioncs" .. "\\pkgwq" .. "z.frx"),
 	kb:new('dvorak')  :layout("',.py" .. "/lrcgf" .. "aoeui" ..  "[snthd" .. "\\;qjkx" .. "zvwmb"),
-	kb:new('solemak') :layout("qwldb" .. "^kyupj" .. "asrtg" ..  "%oienf" .. "$zxcv@" .. ".,mh/"),
+	kb:new('solemak') :layout("qwldb" .. "kyupj" .. "asrtg" ..  "oienf" .. "zxcv" .. ".,mh"),
 }
 
 local function print_kb(kb)
@@ -104,7 +104,7 @@ local function evalkb(kb, stats, prt)
 					sf_cost = sf_cost + 2 * v
 				end
 			-- Check that the fingers are on the same hand
-			elseif (ff < 4 and fs < 4) or (ff >= 4 and fs >= 4) then
+			elseif (ff <= 4 and fs <= 4) or (ff > 4 and fs > 4) then
 				local ef = skb:effort(first)
 				local es = skb:effort(sec)
 

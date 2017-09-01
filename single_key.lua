@@ -1,8 +1,15 @@
 -- This file manages single key costs
+--[[
 local effort = {
-	{ base = -1, 9,6,2,2,3,5,9,}, -- llrmiii
-	{ base = -1, 7,2,1,1,1,5,7,}, -- lLRMIii
-	{ base = 0,    5,4,4,2,3,7,}, --  lrmiii
+	{ base = -1, 9,6,2.2,2,3,5,9,}, -- llrmiii
+	{ base = -1, 7,2,1.2,1,1,5,7,}, -- lLRMIii
+	{ base = 0,    5,5,4,2,3,7,}, --  lrmiii
+}
+-]]
+local effort = {
+	{ base = 0, 6,2.2,2,3,5,}, -- lrmii
+	{ base = 0, 2,1.2,1,1,5,}, -- LRMIi
+	{ base = 1,   5,  4,2,3,}, --  rmii
 }
 
 -- Calculations require that the global kb_layout is set to a valid layout

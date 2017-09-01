@@ -114,4 +114,22 @@ iso105_right = {
 	}
 }
 
-kb_layout = iso105_right
+mini_105_right = {
+	name = "Minified Iso 105 (rightshifted)",
+	left = {
+		-- Number row { base = -2, length = 7},
+		-- Letter rows
+		{ base = 0, length = 5 },
+		{ base = 0, length = 5 },
+		{ base = 1, length = 4 },
+	},
+	right = {
+		-- Number row { base = 0, length = 6},
+		-- Letter rows
+		{ base = 0, length = 5 },
+		{ base = 0, length = 5 },
+		{ base = 1, length = 4 },
+	}
+}
+
+kb_layout = mini_105_right
