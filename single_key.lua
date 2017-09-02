@@ -12,6 +12,11 @@ local effort = {
 	{ base = 1,   5,  4,2,3,}, --  rmii
 }
 
+-- The leut top row is asymetric, and harder to reach
+local left_top_offset = {
+	base = 0, 1, 1, 1, 1, -1
+}
+
 -- Calculations require that the global kb_layout is set to a valid layout
 sk_effort = {
 	left = hand:new(),
@@ -26,6 +31,10 @@ for _, l in ipairs{'left', 'right'} do
 		end
 		sk_effort[l]:add_row(v.base, values)
 	end
+end
+
+for i, v in ipairs(left_top_offset) do
+	sk_effort.left[1][i] = sk_effort.left[1][i] + v
 end
 
 function sk_effort:effort(pos)
