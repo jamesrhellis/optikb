@@ -8,7 +8,7 @@ local effort = {
 -]]
 local effort = {
 	{ base = 0, 6,2.2,2,3,5,}, -- lrmii
-	{ base = 0, 2,1.2,1,1,5,}, -- LRMIi
+	{ base = 0, 2.4,1.2,1,1,5,}, -- LRMIi
 	{ base = 1,   5,  4,2,3,}, --  rmii
 }
 

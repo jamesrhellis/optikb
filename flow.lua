@@ -36,7 +36,7 @@ local function flow_red(ff, rf, fs, rs)
 	end
 
 	-- All flows are defined inwards - so the index finger does not flow
-	return
+	return flow_red(fs, rs, ff, rf)
 end
 
 local function clamp(val, min, max)
