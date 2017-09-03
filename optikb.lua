@@ -1,5 +1,6 @@
 dofile("kb.lua")
 local skb = dofile("single_key.lua")
+dofile("flow.lua")
 print("KB: " .. kb_layout.name)
 print("Left Hand:")
 skb.left:print()
@@ -108,9 +109,7 @@ local function evalkb(kb, stats, prt)
 				local ef = skb:effort(first)
 				local es = skb:effort(sec)
 
-				-- Flow cost reduction - reduce cost between
-				-- easy keys and increase between hard keys
-				fl_red = fl_red + (5-(ef+es)) * v
+				fl_red = fl_red + (flow(first,sec) * v)
 
 				--[[
 				-- Inward flow bias
