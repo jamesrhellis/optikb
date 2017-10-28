@@ -22,7 +22,7 @@ local function stat(str)
 			bigrams[bi] = (bigrams[bi] or 0) + 1
 		end
 		--[[
-		local tri = str:sub(i, i + 3)
+		local tri = str:sub(i, i + 2)
 		if tri:len() == 3 then
 		trigrams[tri] = (trigrams[tri] or 0) + 1
 		end
@@ -58,7 +58,9 @@ local function print_kb(kb)
 		end
 	end
 	for _, l in ipairs{'left', 'right'} do
-		pkb[l] = hand:new():add_row(kb_layout[l][1].base, pkb[l][1]):add_row(kb_layout[l][2].base, pkb[l][2]):add_row(kb_layout[l][3].base, pkb[l][3])
+		pkb[l] = hand:new():add_row(kb_layout[l][1].base, pkb[l][1])
+		                   :add_row(kb_layout[l][2].base, pkb[l][2])
+				   :add_row(kb_layout[l][3].base, pkb[l][3])
 	end
 	if kb.name then
 		print("KB: " .. kb.name)
@@ -111,12 +113,6 @@ local function evalkb(kb, stats, prt)
 
 				fl_red = fl_red + (flow(first,sec) * v)
 
-				--[[
-				-- Inward flow bias
-				if ff < fs then
-					fl_red = fl_red + v
-				end
-				--]]
 			end
 		end
 	end
